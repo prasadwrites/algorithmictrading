@@ -3,14 +3,14 @@
 strategy("Simple Pullback Strategy", 
      overlay=true, 
      initial_capital=10000,
-     default_qty_type=strategy.percent_of_equity, 
-     default_qty_value=100, // 100% of balance invested on each trade
+     default_qty_type=strategy.cash, 
+     default_qty_value=10000, // 100% of balance invested on each trade
      commission_type=strategy.commission.cash_per_contract, 
      commission_value=0.005) // Interactive Brokers rate
 
 import AlphaCentauri66367/PineTradingbotWebhook/7 as tv //TBOT
 webhookKey = "WebhookReceived:0b293b" //TBOT
-qty = input.int(title="Units", defval= 100 ,display = display.data_window) //TBOT
+//qty = input.int(title="Units", defval= 100 ,display = display.data_window) //TBOT
 
 
 // Get user input
@@ -36,16 +36,12 @@ stopDistance    = strategy.position_size > 0 ? ((buyPrice - close) / close) : na
 stopPrice       = strategy.position_size > 0 ? buyPrice - (buyPrice * i_stopPercent) : na
 stopCondition   = strategy.position_size > 0 and stopDistance > i_stopPercent
 
-//var int qty = 0
+var int qty = 0
 // Enter positions
-
 if buyCondition[1]
     buyPrice := close
-
-if buyCondition
-//if true
-    //qty := math.floor(10000/buyPrice)
-    msg = tv.makeWebhookJson(webhookKey,"SimplePullBackStrategy_Long", 'strategy.entrylong',qty) //TBOT
+    qty := math.floor(10000/buyPrice)
+    msg = tv.makeWebhookJson(webhookKey,"SimplePullBackStrategy_Long", 'strategy.entrylong', qty) //TBOT
     strategy.entry(id="Long",  direction=strategy.long,  alert_message = msg)
  
 
@@ -53,11 +49,10 @@ if buyCondition
 
 // Exit positions
 if sellCondition or stopCondition
-    msg = tv.makeWebhookJson(webhookKey,"SimplePullBackStrategy_Exit", 'strategy.entryshort',qty) //TBOT
+    //qty := int( math.abs ( strategy.position_size) )
+    msg = tv.makeWebhookJson(webhookKey,"SimplePullBackStrategy_Exit", 'strategy.entryshort', qty) //TBOT
     strategy.close(id="Long",  comment="Exit" + (stopCondition ? "SL=true" : ""), alert_message=msg)
 
-    //qty := na
-    buyPrice := na
 
 
 
